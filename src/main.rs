@@ -1,9 +1,10 @@
 use bevy::prelude::*;
-use bevy_inspector_egui::quick::*;
-use bevy_egui::EguiPlugin;
+use ::bevy_egui::EguiPlugin;
+use bevy_inspector_egui::*;
 use bevy_mod_picking::prelude::*;
 use bevy_prototype_lyon::plugin::ShapePlugin;
 use plugins::game_world_plugin::*;
+use quick::WorldInspectorPlugin;
 
 pub mod plugins;
 pub mod components;
@@ -16,7 +17,8 @@ fn main() {
         .add_plugins(DefaultPlugins.set(low_latency_window_plugin()))
         
         .add_plugins(EguiPlugin)
-        .add_plugins(WorldInspectorPlugin::default())
+        .add_plugins(DefaultInspectorConfigPlugin)
+        .add_plugins(WorldInspectorPlugin::new())
         .add_plugins(DefaultPickingPlugins)
         .add_plugins(ShapePlugin)
 

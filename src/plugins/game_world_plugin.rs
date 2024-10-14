@@ -1,4 +1,5 @@
 use crate::bundles::pawn_bundle::*;
+use crate::bundles::plant_bundle::*;
 use crate::components::{entity_selected::EntitySelected, visual_aabb2d::VisualAabb2d};
 use crate::systems::ui::*;
 use bevy::{color::palettes::css::*, prelude::*};
@@ -51,14 +52,19 @@ fn generate_world(
 ) {
     // add a few villagers for testing
     for w in vec![("Sana", 0, 0), ("Mina", 10, 2), ("Eunha", 8, 6)] {
-        spawn_pawn(
-            &mut commands,
-            &game_world,
-            &asset_server,
-            w.0,
-            w.1 as f32,
-            w.2 as f32,
-        );
+        spawn_pawn(&mut commands, &game_world, &asset_server, w.0, w.1 as f32, w.2 as f32);
+    }
+
+    // and a few trees
+    for x in 2..5 {
+        for y in 2..7 {
+            spawn_plant(&mut commands, &game_world, &asset_server, "tree-leafy", x as f32, y as f32);
+        }
+    }
+    for x in -6..4 {
+        for y in -10..-4 {
+            spawn_plant(&mut commands, &game_world, &asset_server, "tree-pine", x as f32, y as f32);
+        }
     }
 }
 
