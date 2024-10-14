@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_inspector_egui::quick::*;
 use bevy_egui::EguiPlugin;
-use bevy_mod_picking::DefaultPickingPlugins;
+use bevy_mod_picking::prelude::*;
 use bevy_prototype_lyon::plugin::ShapePlugin;
 use plugins::game_world_plugin::*;
 
@@ -13,7 +13,7 @@ pub mod systems;
 fn main() {
     App::new()
         .insert_resource(Msaa::Sample4)
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(low_latency_window_plugin()))
         
         .add_plugins(EguiPlugin)
         .add_plugins(WorldInspectorPlugin::default())

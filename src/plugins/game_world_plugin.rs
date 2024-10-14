@@ -1,4 +1,5 @@
-use crate::components::{pawn::*, entity_selected::EntitySelected, visual_aabb2d::VisualAabb2d};
+use crate::bundles::pawn_bundle::*;
+use crate::components::{entity_selected::EntitySelected, visual_aabb2d::VisualAabb2d};
 use crate::systems::ui::*;
 use bevy::{color::palettes::css::*, prelude::*};
 use bevy_prototype_lyon::prelude::*;
