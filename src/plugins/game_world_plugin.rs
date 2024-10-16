@@ -41,6 +41,7 @@ impl Plugin for GameWorldPlugin {
         app.add_systems(Startup, (create_visual_selection_feedback, generate_world));
         app.add_systems(Update, update_visual_selection_feedback
             .after(TransformSystem::TransformPropagate));
+        app.add_systems(Update, update_plant_harvest_overlay);
         app.add_systems(Update, create_ui);
     }
 }
