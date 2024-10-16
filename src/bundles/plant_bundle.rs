@@ -81,11 +81,13 @@ pub fn spawn_plant(
             // harvest overlay
             parent.spawn((
                 SpriteBundle {
+                    transform: Transform::from_translation(Vec3::new(0., 0., 1.)),
                     texture: asset_server.load("plants/mark-for-harvest-overlay.png"),
                     sprite: Sprite {
                         custom_size: Some(Vec2::splat(game_world.cell_size() as f32)),
                         ..default()
                     },
+                    visibility: Visibility::Hidden,
                     ..default()
                 },
                 NoFrustumCulling,
@@ -106,21 +108,32 @@ pub fn select_plant(
     commands.entity(entity_id).insert(EntitySelected);
 }
 
-pub fn update_plant_harvest_overlay(
-    plant_query: Query<(Option<&PlantHarvest>, &Children), With<Plant>>,
+pub fn update_add_plant_harvest_overlay(
+    plant_query: Query<Ref<Children>, (With<Plant>, Added<PlantHarvest>)>,
     mut child_visibility_query: Query<&mut Visibility>,
 ) {
-    for (maybe_plant_harvest, children) in plant_query.iter() {
+    for children in plant_query.iter() {
         if let Some(child) = children.get(0) {
             if let Ok(mut visibility) = child_visibility_query.get_mut(*child) {
-                let new_visibility = if maybe_plant_harvest.is_some() {
-                    Visibility::Visible
-                } else {
-                    Visibility::Hidden
-                };
-                
-                if *visibility != new_visibility {
-                    *visibility = new_visibility;
+                if *visibility != Visibility::Visible {
+                    *visibility = Visibility::Visible;
+                }
+            }
+        }
+    }
+}
+
+pub fn update_remove_plant_harvest_overlay(
+    mut removed_harvest: RemovedComponents<PlantHarvest>,
+    plant_query: Query<Ref<Children>, With<Plant>>,
+    mut child_visibility_query: Query<&mut Visibility>,
+) {
+    for entity in removed_harvest.read() {
+        let children = plant_query.get(entity).unwrap();
+        if let Some(child) = children.get(0) {
+            if let Ok(mut visibility) = child_visibility_query.get_mut(*child) {
+                if *visibility != Visibility::Hidden {
+                    *visibility = Visibility::Hidden;
                 }
             }
         }
