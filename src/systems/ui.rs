@@ -56,16 +56,13 @@ pub fn create_ui<'a>(
         });
     });
 
-    let jobs;
-    {
-        // query the jobs resource
-        let jobs_resource = state.get(world);
-        jobs = jobs_resource
-            .0
-            .iter()
-            .map(|w| (w.name.clone(), w.job_type.clone()))
-            .collect::<Vec<_>>();
-    }
+    // query the jobs resource
+    let jobs = state
+        .get(world)
+        .0
+        .iter()
+        .map(|w| (w.name.clone(), w.job_type.clone()))
+        .collect::<Vec<_>>();
 
     egui::SidePanel::right("Jobs").show(ctx, |ui| {
         ui.vertical(|ui| {
