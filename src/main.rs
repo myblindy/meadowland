@@ -10,6 +10,7 @@ pub mod bundles;
 pub mod components;
 pub mod plugins;
 pub mod systems;
+pub mod resources;
 
 fn main() {
     App::new()
@@ -36,7 +37,8 @@ fn main() {
         .add_plugins(WorldInspectorPlugin::new())
         .add_plugins(DefaultPickingPlugins.build()
             .disable::<DefaultHighlightingPlugin>()
-            .disable::<SelectionPlugin>())
+            .disable::<SelectionPlugin>()
+            .disable::<DebugPickingPlugin>())
         .add_plugins(ShapePlugin)
         .insert_resource(GameWorld::new(300, 300))
         .add_plugins(GameWorldPlugin)

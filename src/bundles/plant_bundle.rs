@@ -6,6 +6,7 @@ use crate::{
         entity_selected::*, entity_selected_actions::*, nickname::*, plant::*,
         plant_harvest::PlantHarvest, visual_aabb2d::*,
     },
+    resources::jobs::*,
     GameWorld,
 };
 
@@ -15,7 +16,6 @@ struct PlantBundle {
     pub name: Name,
     pub nickname: Nickname,
     pub visual_aabb2d: VisualAabb2d,
-    pub pickable: PickableBundle,
     pub sprite: SpriteBundle,
     pub entity_selected_actions: EntitySelectedActions<'static>,
 }
@@ -48,7 +48,6 @@ pub fn spawn_plant(
                     Vec2::new(0., 0.),
                     Vec2::splat(game_world.cell_size() as f32),
                 )),
-                pickable: PickableBundle::default(),
                 plant: Plant {
                     name: name.to_string(),
                 },
@@ -90,6 +89,10 @@ pub fn spawn_plant(
                     visibility: Visibility::Hidden,
                     ..default()
                 },
+                Pickable {
+                    should_block_lower: false,
+                    is_hoverable: false,
+                },
                 NoFrustumCulling,
             ));
         });
@@ -108,32 +111,42 @@ pub fn select_plant(
     commands.entity(entity_id).insert(EntitySelected);
 }
 
-pub fn update_add_plant_harvest_overlay(
-    plant_query: Query<Ref<Children>, (With<Plant>, Added<PlantHarvest>)>,
+pub fn update_plant_harvest_overlay(
+    mut removed_harvest: RemovedComponents<PlantHarvest>,
+    plant_added_query: Query<(Entity, Ref<Children>), (With<Plant>, Added<PlantHarvest>)>,
+    plant_query: Query<(Entity, Ref<Children>), With<Plant>>,
     mut child_visibility_query: Query<&mut Visibility>,
+    mut jobs: ResMut<Jobs>,
 ) {
-    for children in plant_query.iter() {
+    // added
+    for (entity, children) in plant_added_query.iter() {
         if let Some(child) = children.get(0) {
             if let Ok(mut visibility) = child_visibility_query.get_mut(*child) {
                 if *visibility != Visibility::Visible {
                     *visibility = Visibility::Visible;
+
+                    jobs.0.push(Job {
+                        name: "Plant Harvest".to_string(),
+                        job_type: JobType::PlantHarvest(entity),
+                    });
                 }
             }
         }
     }
-}
 
-pub fn update_remove_plant_harvest_overlay(
-    mut removed_harvest: RemovedComponents<PlantHarvest>,
-    plant_query: Query<Ref<Children>, With<Plant>>,
-    mut child_visibility_query: Query<&mut Visibility>,
-) {
+    // removed
     for entity in removed_harvest.read() {
-        let children = plant_query.get(entity).unwrap();
+        let Ok((entity, children)) = plant_query.get(entity) else {
+            continue;
+        };
         if let Some(child) = children.get(0) {
             if let Ok(mut visibility) = child_visibility_query.get_mut(*child) {
                 if *visibility != Visibility::Hidden {
                     *visibility = Visibility::Hidden;
+
+                    jobs.0.retain(|job| match job.job_type {
+                        JobType::PlantHarvest(job_entity) => job_entity != entity,
+                    });
                 }
             }
         }

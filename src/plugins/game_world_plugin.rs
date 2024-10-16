@@ -1,6 +1,7 @@
 use crate::bundles::pawn_bundle::*;
 use crate::bundles::plant_bundle::*;
 use crate::components::{entity_selected::EntitySelected, visual_aabb2d::VisualAabb2d};
+use crate::resources::jobs::Jobs;
 use crate::systems::ui::*;
 use bevy::{color::palettes::css::*, prelude::*};
 use bevy_prototype_lyon::prelude::*;
@@ -38,10 +39,11 @@ pub struct GameWorldPlugin;
 impl Plugin for GameWorldPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<GameWorld>();
+        app.init_resource::<Jobs>();
         app.add_systems(Startup, (create_visual_selection_feedback, generate_world));
         app.add_systems(Update, update_visual_selection_feedback
             .after(TransformSystem::TransformPropagate));
-        app.add_systems(Update, (update_add_plant_harvest_overlay, update_remove_plant_harvest_overlay));
+        app.add_systems(Update, update_plant_harvest_overlay);
         app.add_systems(Update, create_ui);
     }
 }
@@ -87,13 +89,13 @@ fn create_visual_selection_feedback(mut commands: Commands) {
 }
 
 fn update_visual_selection_feedback(
-    selection_query: Query<(&EntitySelected, &VisualAabb2d, &GlobalTransform)>,
-    mut visual_selection_feedback_query: Query<(&VisualSelectionFeedback, &mut Path, &mut Visibility, &mut Transform)>,
+    selection_query: Query<(&VisualAabb2d, &GlobalTransform), With<EntitySelected>>,
+    mut visual_selection_feedback_query: Query<(&mut Path, &mut Visibility, &mut Transform), With<VisualSelectionFeedback>>,
     mut last_visual_selection_feedback_shape_size: Local<Vec2>,
 ) {
     match selection_query.iter().next() {
-        Some((_, VisualAabb2d(aabb2d), selection_global_transform)) => {
-            for (_, mut path, mut visibility, mut transform) in visual_selection_feedback_query.iter_mut() {
+        Some((VisualAabb2d(aabb2d), selection_global_transform)) => {
+            for (mut path, mut visibility, mut transform) in visual_selection_feedback_query.iter_mut() {
                 *visibility = Visibility::Visible;
                 transform.translation = selection_global_transform.translation();
 
@@ -112,7 +114,7 @@ fn update_visual_selection_feedback(
             }
         }
         None => {
-            for (_, _, mut visibility, _) in visual_selection_feedback_query.iter_mut() {
+            for (_, mut visibility, _) in visual_selection_feedback_query.iter_mut() {
                 *visibility = Visibility::Hidden;
             }
         }
