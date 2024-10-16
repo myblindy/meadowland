@@ -113,11 +113,15 @@ pub fn update_plant_harvest_overlay(
     for (maybe_plant_harvest, children) in plant_query.iter() {
         if let Some(child) = children.get(0) {
             if let Ok(mut visibility) = child_visibility_query.get_mut(*child) {
-                *visibility = if maybe_plant_harvest.is_some() {
+                let new_visibility = if maybe_plant_harvest.is_some() {
                     Visibility::Visible
                 } else {
                     Visibility::Hidden
                 };
+                
+                if *visibility != new_visibility {
+                    *visibility = new_visibility;
+                }
             }
         }
     }
