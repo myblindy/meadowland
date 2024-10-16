@@ -2,7 +2,7 @@ use crate::{
     components::{entity_selected::*, nickname::*, pawn::*, visual_aabb2d::*},
     GameWorld,
 };
-use bevy::{math::bounding::Aabb2d, prelude::*};
+use bevy::{math::bounding::Aabb2d, prelude::*, render::view::NoFrustumCulling};
 use bevy_mod_picking::prelude::*;
 
 #[derive(Bundle)]
@@ -10,7 +10,7 @@ struct PawnBundle {
     pub pawn: Pawn,
     pub nickname: Nickname,
     pub name: Name,
-    pub spatial: SpatialBundle,
+    pub sprite: SpriteBundle,
     pub visual_aabb2d: VisualAabb2d,
     pub pickable: PickableBundle,
 }
@@ -27,7 +27,12 @@ pub fn spawn_pawn(
         .spawn((
             PawnBundle {
                 nickname: Nickname(format!("Villager {}", name)),
-                spatial: SpatialBundle {
+                sprite: SpriteBundle {
+                    texture: asset_server.load("pawns/pawn.png"),
+                    sprite: Sprite {
+                        custom_size: Some(Vec2::splat(game_world.cell_size() as f32)),
+                        ..default()
+                    },
                     transform: Transform {
                         translation: Vec3::new(x, y, 0.) * game_world.cell_size() as f32,
                         ..default()
@@ -42,21 +47,12 @@ pub fn spawn_pawn(
                 pawn: Pawn,
                 name: Name::new("Pawn"),
             },
+            NoFrustumCulling,
             On::<Pointer<Click>>::run(select_pawn),
         ))
         .with_children(|parent| {
-            // image
-            parent.spawn(SpriteBundle {
-                texture: asset_server.load("pawns/pawn.png"),
-                sprite: Sprite {
-                    custom_size: Some(Vec2::splat(game_world.cell_size() as f32)),
-                    ..default()
-                },
-                ..default()
-            });
-
             // nameplate
-            parent.spawn(Text2dBundle {
+            parent.spawn((Text2dBundle {
                 text: Text {
                     sections: vec![TextSection {
                         value: name.to_string(),
@@ -74,29 +70,28 @@ pub fn spawn_pawn(
                     0.,
                 )),
                 ..default()
-            });
+            },
+            NoFrustumCulling));
         });
 }
 
 pub fn select_pawn(
     mut commands: Commands,
     event: Listener<Pointer<Click>>,
-    previous_selected_pawn_query: Query<(Entity, &EntitySelected)>,
+    previous_selected_pawn_query: Query<Entity, With<EntitySelected>>,
     parent_query: Query<&Parent>,
-    is_entity_pawn: Query<(Entity, Option<&Pawn>)>,
+    is_entity_pawn: Query<Option<&Pawn>>,
 ) {
-    for (entity_id, _) in previous_selected_pawn_query.iter() {
+    for entity_id in previous_selected_pawn_query.iter() {
         commands.entity(entity_id).remove::<EntitySelected>();
     }
 
     // we click on the child sprite, but we need to get to the parent Pawn entity
     let mut entity_id = event.target;
     loop {
-        if let Ok((_, maybe_pawn)) = is_entity_pawn.get(entity_id) {
-            if maybe_pawn.is_some() {
+        if let Ok(Some(_)) = is_entity_pawn.get(entity_id) {
                 commands.entity(entity_id).insert(EntitySelected);
                 return;
-            }
         }
 
         match parent_query.iter_ancestors(entity_id).next() {
