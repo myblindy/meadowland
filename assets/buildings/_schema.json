@@ -1,0 +1,76 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema",
+  "title": "JSON Schema for buildings",
+
+  "type": "object",
+
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The name of the building."
+    },
+    "type": {
+      "type": "string",
+      "enum": [ "production", "rest", "toilet", "chair", "table", "wall", "door" ],
+      "default": "production"
+    },
+    "workInside": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether or not to path to the center of the building to work. If false, pathing next to it is enough."
+    },
+    "width": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1
+    },
+    "height": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1
+    },
+    "productionLines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "inputs": {
+            "type": "array",
+            "items": { "$ref": "../base_schemas/resource_quantity.json#/definitions/resourceQuantity" }
+          },
+          "outputs": {
+            "type": "array",
+            "items": { "$ref": "../base_schemas/resource_quantity.json#/definitions/resourceQuantity" }
+          },
+          "workTicks": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "required": [ "name", "inputs", "outputs", "workTicks" ]
+      }
+    },
+    "buildCost": {
+      "type": "object",
+      "properties": {
+        "workTicks": {
+          "type": "number",
+          "minimum": 0
+        },
+        "resources": {
+          "type": "array",
+          "items": { "$ref": "../base_schemas/resource_quantity.json#/definitions/resourceQuantity" }
+        }
+      }
+    },
+    "maxWorkersAmount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "emitLight": { "$ref": "../base_schemas/light.json#/definitions/light" }
+  },
+  "required": [ "name", "type", "width", "height", "buildCost" ]
+}

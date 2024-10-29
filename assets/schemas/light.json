@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema",
+  "title": "JSON Schema for lights",
+  "definitions": {
+    "light": {
+      "type": "object",
+      "properties": {
+        "range": {
+          "type": "number",
+          "minimum": 1
+        },
+        "color": { "$ref": "../base_schemas/color.json#/definitions/color" }
+      }
+    }
+  }
+}

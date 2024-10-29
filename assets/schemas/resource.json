@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema",
+  "title": "JSON Schema for resources",
+
+  "type": "object",
+
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The name of the resource."
+    },
+    "weight": {
+      "type": "number",
+      "minimum": 0,
+      "description": "The weight of one unit of this resource."
+    },
+    "groups": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "description": "Group name for this resource, like vegetable or meat or cloth."
+      }
+    },
+    "pickupSpeedMultiplier": {
+      "type": "number",
+      "minimum": 0,
+      "description": "The multiplier to be applied to a villager's pickup speed, on a per-resource basis."
+    },
+    "nourishment": {
+      "type": "number",
+      "minimum": 0,
+      "description": "How much nourishment this item provides, 0 or nothing means it's inedible."
+    }
+  },
+
+  "required": [ "name", "weight", "pickupSpeedMultiplier" ]
+}

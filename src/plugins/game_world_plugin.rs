@@ -1,10 +1,13 @@
 use crate::bundles::pawn_bundle::*;
 use crate::bundles::plant_bundle::*;
 use crate::components::{entity_selected::EntitySelected, visual_aabb2d::VisualAabb2d};
+use crate::resources::game_resources::GameResource;
 use crate::resources::jobs::Jobs;
 use crate::systems::ui::*;
+use bevy::asset::LoadedFolder;
 use bevy::{color::palettes::css::*, prelude::*};
 use bevy_prototype_lyon::prelude::*;
+use bevy_common_assets::json::JsonAssetPlugin;
 
 #[derive(Resource, Default)]
 pub struct GameWorld {
@@ -38,13 +41,52 @@ pub struct GameWorldPlugin;
 
 impl Plugin for GameWorldPlugin {
     fn build(&self, app: &mut App) {
+        app.init_state::<GameState>();
         app.init_resource::<GameWorld>();
         app.init_resource::<Jobs>();
-        app.add_systems(Startup, (create_visual_selection_feedback, generate_world));
+
+        app.add_plugins(JsonAssetPlugin::<GameResource>::new(&["resource.json"]));
+        
+        app.add_systems(Startup, (start_load_assets, create_visual_selection_feedback, generate_world));
+
+        app.add_systems(Update, load_assets.run_if(in_state(GameState::Loading)));
+
         app.add_systems(Update, update_visual_selection_feedback
-            .after(TransformSystem::TransformPropagate));
-        app.add_systems(Update, update_plant_harvest_overlay);
-        app.add_systems(Update, create_ui);
+            .after(TransformSystem::TransformPropagate)
+            .run_if(in_state(GameState::Main)));
+        app.add_systems(Update, update_plant_harvest_overlay
+            .run_if(in_state(GameState::Main)));
+        app.add_systems(Update, create_ui
+            .run_if(in_state(GameState::Main)));
+    }
+}
+
+#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
+enum GameState {
+    #[default]
+    Loading,
+    Main,
+}
+
+#[derive(Resource)]
+struct AllAssetsFolderHandle(Handle<LoadedFolder>);
+
+fn start_load_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands.insert_resource(AllAssetsFolderHandle(asset_server.load_folder("resources")));
+}
+
+fn load_assets(
+    mut commands: Commands,
+    folder: Res<AllAssetsFolderHandle>,
+    loaded_folder_assets: Res<Assets<LoadedFolder>>,
+    mut state: ResMut<NextState<GameState>>,
+){
+    let folder = loaded_folder_assets.get(&folder.0).unwrap();
+
+    for handle in &folder.handles {
+        if let Some(path) = handle.path() {
+            
+        }
     }
 }
 
