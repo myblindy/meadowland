@@ -3,12 +3,25 @@ use crate::{
         entity_selected::*, entity_selected_actions::EntitySelectedActions, nickname::*,
         plant::Plant,
     },
-    resources::jobs::*,
+    resources::jobs::*, GameState,
 };
 use bevy::{ecs::system::SystemState, prelude::*, window::PrimaryWindow};
-use bevy_egui::{egui, EguiContext};
+use bevy_egui::{egui::{self, *}, EguiContext, EguiContexts};
 
-pub fn create_ui<'a>(
+pub fn run_loading_ui(mut ctx: EguiContexts, state: Res<State<GameState>>) {
+    if let Some(ctx) = ctx.try_ctx_mut() {
+        egui::CentralPanel::default().show(&ctx, |ui| {
+            ui.centered_and_justified(|ui| {
+                ui.label(RichText::new(match state.get() {
+                    GameState::MapGeneration => "Generating the map...",
+                    _ => "Loading...",
+                }).font(FontId::proportional(40.0)));
+            });
+        });
+    }
+}
+
+pub fn run_main_ui<'a>(
     world: &mut World,
     selected_query: &mut QueryState<&Nickname, With<EntitySelected>>,
     egui_context_query: &mut QueryState<&mut EguiContext, With<PrimaryWindow>>,

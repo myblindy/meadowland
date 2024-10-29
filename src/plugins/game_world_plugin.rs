@@ -4,6 +4,7 @@ use crate::components::{entity_selected::EntitySelected, visual_aabb2d::VisualAa
 use crate::resources::game_resources::GameResource;
 use crate::resources::jobs::Jobs;
 use crate::systems::ui::*;
+use crate::systems::map_generation::*;
 use bevy::asset::LoadedFolder;
 use bevy::{color::palettes::css::*, prelude::*};
 use bevy_prototype_lyon::prelude::*;
@@ -49,43 +50,42 @@ impl Plugin for GameWorldPlugin {
         
         app.add_systems(Startup, (start_load_assets, create_visual_selection_feedback, generate_world));
 
-        app.add_systems(Update, load_assets.run_if(in_state(GameState::Loading)));
+        app.add_systems(Update, check_assets_loaded.run_if(in_state(GameState::Loading)));
+        app.add_systems(Update, run_loading_ui
+            .run_if(in_state(GameState::Loading).or_else(in_state(GameState::MapGeneration))));
+
+        app.add_systems(OnEnter(GameState::MapGeneration),start_map_generation);
+        app.add_systems(Update, check_map_generation_finished.run_if(in_state(GameState::MapGeneration)));
 
         app.add_systems(Update, update_visual_selection_feedback
             .after(TransformSystem::TransformPropagate)
             .run_if(in_state(GameState::Main)));
         app.add_systems(Update, update_plant_harvest_overlay
             .run_if(in_state(GameState::Main)));
-        app.add_systems(Update, create_ui
+        app.add_systems(Update, run_main_ui
             .run_if(in_state(GameState::Main)));
     }
 }
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
-enum GameState {
+pub enum GameState {
     #[default]
     Loading,
+    MapGeneration,
     Main,
 }
 
-#[derive(Resource)]
-struct AllAssetsFolderHandle(Handle<LoadedFolder>);
-
-fn start_load_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.insert_resource(AllAssetsFolderHandle(asset_server.load_folder("resources")));
+fn start_load_assets(asset_server: Res<AssetServer>) {
+    let assets = asset_server.load_folder("resources");
 }
 
-fn load_assets(
-    mut commands: Commands,
-    folder: Res<AllAssetsFolderHandle>,
-    loaded_folder_assets: Res<Assets<LoadedFolder>>,
-    mut state: ResMut<NextState<GameState>>,
+fn check_assets_loaded(
+    mut app_next_state: ResMut<NextState<GameState>>,
+    mut events: EventReader<AssetEvent<LoadedFolder>>,
 ){
-    let folder = loaded_folder_assets.get(&folder.0).unwrap();
-
-    for handle in &folder.handles {
-        if let Some(path) = handle.path() {
-            
+    for event in events.read() {
+        if let AssetEvent::LoadedWithDependencies { id: _} = event {
+            app_next_state.set(GameState::MapGeneration);
         }
     }
 }
