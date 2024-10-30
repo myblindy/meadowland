@@ -1,0 +1,72 @@
+{
+  "$schema": "../schemas/biome.json",
+
+  "biomes": [
+    {
+      "name": "DeepWater",
+      "movementModifier": 0,
+      "minHeight": 0,
+      "minMoisture": 0,
+      "minHeat": 0
+    },
+    {
+      "name": "Water",
+      "movementModifier": 0,
+      "minHeight": 0.1,
+      "minMoisture": 0,
+      "minHeat": 0
+    },
+    {
+      "name": "Grass",
+      "movementModifier": 1,
+      "minHeight": 0.25,
+      "minMoisture": 0.2,
+      "minHeat": 0.1,
+      "plants": [
+        {
+          "name": "tree-leafy",
+          "chance": 0.05
+        }
+      ]
+    },
+    {
+      "name": "Forest",
+      "movementModifier": 0.9,
+      "tileName": "Grass",
+      "minHeight": 0.25,
+      "minMoisture": 0.3,
+      "minHeat": 0.2,
+      "plants": [
+        {
+          "name": "tree-leafy",
+          "chance": 0.6
+        }
+      ]
+    },
+    {
+      "name": "Jungle",
+      "movementModifier": 0.8,
+      "tileName": "Grass",
+      "minHeight": 0.25,
+      "minMoisture": 0.4,
+      "minHeat": 0.3,
+      "plants": [
+        {
+          "name": "tree-pine",
+          "chance": 0.4
+        },
+        {
+          "name": "tree-leafy",
+          "chance": 1
+        }
+      ]
+    },
+    {
+      "name": "Mountain",
+      "movementModifier": 0.3,
+      "minHeight": 0.7,
+      "minMoisture": 0,
+      "minHeat": 0
+    }
+  ]
+}

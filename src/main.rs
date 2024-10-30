@@ -25,6 +25,8 @@ fn main() {
                     maximize: false,
                     ..default()
                 },
+                resizable: false,
+                mode: bevy::window::WindowMode::BorderlessFullscreen,
 
                 ..default()
             }),

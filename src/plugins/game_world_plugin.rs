@@ -1,6 +1,7 @@
 use crate::bundles::pawn_bundle::*;
 use crate::bundles::plant_bundle::*;
 use crate::components::{entity_selected::EntitySelected, visual_aabb2d::VisualAabb2d};
+use crate::resources::biomes::Biomes;
 use crate::resources::game_resources::GameResource;
 use crate::resources::jobs::Jobs;
 use crate::systems::ui::*;
@@ -47,8 +48,9 @@ impl Plugin for GameWorldPlugin {
         app.init_resource::<Jobs>();
 
         app.add_plugins(JsonAssetPlugin::<GameResource>::new(&["resource.json"]));
+        app.add_plugins(JsonAssetPlugin::<Biomes>::new(&["biomes.json"]));
         
-        app.add_systems(Startup, (start_load_assets, create_visual_selection_feedback, generate_world));
+        app.add_systems(Startup, start_load_assets);
 
         app.add_systems(Update, check_assets_loaded.run_if(in_state(GameState::Loading)));
         app.add_systems(Update, run_loading_ui
@@ -57,6 +59,7 @@ impl Plugin for GameWorldPlugin {
         app.add_systems(OnEnter(GameState::MapGeneration),start_map_generation);
         app.add_systems(Update, check_map_generation_finished.run_if(in_state(GameState::MapGeneration)));
 
+        app.add_systems(OnEnter(GameState::Main), (create_visual_selection_feedback, generate_world));
         app.add_systems(Update, update_visual_selection_feedback
             .after(TransformSystem::TransformPropagate)
             .run_if(in_state(GameState::Main)));
@@ -75,8 +78,11 @@ pub enum GameState {
     Main,
 }
 
-fn start_load_assets(asset_server: Res<AssetServer>) {
-    let assets = asset_server.load_folder("resources");
+#[derive(Resource)]
+struct LoadedFolderHandle(Handle<LoadedFolder>);
+
+fn start_load_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands.insert_resource(LoadedFolderHandle(asset_server.load_folder("resources")));
 }
 
 fn check_assets_loaded(
