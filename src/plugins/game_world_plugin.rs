@@ -1,6 +1,7 @@
 use crate::bundles::pawn_bundle::*;
 use crate::bundles::plant_bundle::*;
 use crate::components::{entity_selected::EntitySelected, visual_aabb2d::VisualAabb2d};
+use crate::resources::biomes::Biome;
 use crate::resources::biomes::Biomes;
 use crate::resources::game_resources::GameResource;
 use crate::resources::jobs::Jobs;
@@ -10,23 +11,33 @@ use bevy::asset::LoadedFolder;
 use bevy::{color::palettes::css::*, prelude::*};
 use bevy_prototype_lyon::prelude::*;
 use bevy_common_assets::json::JsonAssetPlugin;
+use rand::rngs::StdRng;
+use rand::SeedableRng;
 
-#[derive(Resource, Default)]
+#[derive(Resource)]
 pub struct GameWorld {
-    height: i32,
-    width: i32,
+    height: u32,
+    width: u32,
+    rng: StdRng,
 }
 
+impl Default for GameWorld {
+    fn default() -> Self {
+        Self { height: 0, width: 0, rng: StdRng::from_entropy() }
+    }
+}
+
+
 impl GameWorld {
-    pub fn height(&self) -> i32 {
+    pub fn height(&self) -> u32 {
         self.height
     }
 
-    pub fn width(&self) -> i32 {
+    pub fn width(&self) -> u32 {
         self.width
     }
 
-    pub fn cell_size(&self) -> i32 {
+    pub fn cell_size(&self) -> u32 {
         32
     }
 
@@ -34,8 +45,20 @@ impl GameWorld {
         "OpenSans-Regular.ttf".to_string()
     }
 
-    pub fn new(width: i32, height: i32) -> Self {
-        GameWorld { width, height }
+    pub fn texture_handles_for_biome(&self, biome: &Biome) -> Vec<(Handle<Image>, u32)> {
+        todo!()
+    }
+
+    pub fn texture_handles_for_all_biomes(&self) -> Vec<Handle<Image>> {
+        todo!()
+    }
+
+    pub fn rng(&mut self) -> &mut StdRng {
+        &mut self.rng
+    }
+
+    pub fn new(width: u32, height: u32) -> Self {
+        GameWorld { width, height, ..default() }
     }
 }
 
@@ -82,7 +105,7 @@ pub enum GameState {
 struct LoadedFolderHandle(Handle<LoadedFolder>);
 
 fn start_load_assets(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.insert_resource(LoadedFolderHandle(asset_server.load_folder("resources")));
+    commands.insert_resource(LoadedFolderHandle(asset_server.load_folder(".")));
 }
 
 fn check_assets_loaded(

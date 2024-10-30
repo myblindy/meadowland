@@ -1,5 +1,5 @@
 {
-  "$schema": "../schemas/resource.json",
+  "$schema": "../../schemas/resource.json",
   "name": "Wood",
   "weight": 0.5,
   "pickupSpeedMultiplier": 0.9
